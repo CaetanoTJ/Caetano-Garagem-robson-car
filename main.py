@@ -1,29 +1,29 @@
 import customtkinter as ctk
 import sqlite3
 from tkinter import ttk
-import shutil  # <-- Esse é o novo motor de cópia que adicionamos
-import os      # <-- Esse ajuda a verificar se o arquivo existe
+import shutil  
+import os      
 import json
 import os
 
-# Função para ler o arquivo que você acabou de criar
+
 def carregar_config():
     try:
         with open('config.json', 'r', encoding='utf-8') as f:
             return json.load(f)
     except:
-        # Caso o arquivo não seja encontrado, ele usa esse padrão
+    
         return {"nome_oficina": "Garagem Robson'Car", "cor_destaque": "blue"}
 
-# Carrega as configurações para uma variável chamada 'dados'
+
 dados = carregar_config()
 
-# Configuração visual do Sistema
+
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
 def configurar_banco():
-    # Faz o backup se o arquivo já existir
+    
     if os.path.exists('usuarios.db'):
         try:
             shutil.copy2('usuarios.db', 'backup_garagem.db')
@@ -33,10 +33,10 @@ def configurar_banco():
     conn = sqlite3.connect('usuarios.db')
     cursor = conn.cursor()
     
-    # 1. Tabela de Usuários
+    
     cursor.execute("CREATE TABLE IF NOT EXISTS usuarios (user TEXT PRIMARY KEY, password TEXT)")
     
-    # 2. Tabela de Serviços (O.S.) - AQUI ESTAVA O SEU ERRO!
+    
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS servicos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -49,7 +49,6 @@ def configurar_banco():
         )
     """)
     
-    # 3. Tabela de Estoque
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS estoque (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -61,7 +60,7 @@ def configurar_banco():
     conn.commit()
     conn.close()
     print("Banco de dados e tabelas configurados com sucesso!")
-# --- 2. JANELA DE CADASTRO DE NOVOS USUÁRIOS ---
+
 class JanelaCadastro(ctk.CTkToplevel):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
@@ -90,41 +89,41 @@ class JanelaCadastro(ctk.CTkToplevel):
             except:
                 print("Erro: Usuário já existe.")
 
-# --- 3. JANELA PRINCIPAL (SISTEMA ROBSON'CAR) ---
+
 class JanelaPrincipal(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title(f"{dados['nome_oficina']} - Gestão Profissional")
         self.geometry("1100x650")
         
-        # Estilo para as tabelas
+        
         style = ttk.Style()
         style.theme_use("default")
         
-        # 1. Mudando a fonte dos itens (ID, Nome do Produto, Qtd)
+        
         style.configure("Treeview", 
                         background="#2a2a2a", 
                         foreground="white", 
-                        rowheight=20, # Aumentei um pouco para a letra maior caber bem
+                        rowheight=20, 
                         fieldbackground="#2a2a2a", 
                         borderwidth=0,
-                        font=("Segoe UI", 14)) # <--- ADICIONE AQUI
+                        font=("Segoe UI", 14)) 
 
         style.map("Treeview", background=[('selected', '#1f538d')])
 
-        # 2. Mudando a fonte do Cabeçalho (Títulos)
+        
         style.configure("Treeview.Heading", 
                         background="#333", 
                         foreground="white", 
                         relief="flat",
-                        font=("Segoe UI", 16, "bold")) # <--- ADICIONE AQUI
+                        font=("Segoe UI", 16, "bold")) 
         
-        # Menu Lateral
+        
         self.menu_lateral = ctk.CTkFrame(self, width=220, corner_radius=0)
         self.menu_lateral.pack(side="left", fill="y")
         ctk.CTkLabel(self.menu_lateral, text=dados['nome_oficina'].upper(), font=("Roboto", 22, "bold")).pack(pady=30)
 
-       # No menu lateral, localize e altere estas linhas:
+       
 
         ctk.CTkButton(self.menu_lateral, text="🏠 Home", fg_color=dados['cor_destaque'], command=self.mostrar_home).pack(pady=10, padx=20)
         ctk.CTkButton(self.menu_lateral, text="🚗 Nova O.S.", fg_color=dados['cor_destaque'], command=self.tela_os).pack(pady=10, padx=20)
@@ -144,36 +143,36 @@ class JanelaPrincipal(ctk.CTk):
         self.limpar_tela()
         ctk.CTkLabel(self.container, text="Bem-vindo, Robson!\nSistema de Funilaria e Pintura", font=("Roboto", 26)).pack(pady=150)
     
-    # --- GESTÃO DE O.S. ---
+    
     def tela_os(self):
         self.limpar_tela()
         ctk.CTkLabel(self.container, text="Nova Ordem de Serviço", font=("Roboto", 24, "bold")).pack(pady=20)
         
-        # 1. CLIENTE
+        
         self.ent_cli = ctk.CTkEntry(self.container, font=("Segoe UI", 18, "bold"), corner_radius=10, placeholder_text="Nome do Cliente", width=450)
         self.ent_cli.pack(pady=10)
         
-        # 2. VEÍCULO
+        
         self.ent_vei = ctk.CTkEntry(self.container, font=("Segoe UI", 18, "bold"), corner_radius=10, placeholder_text="Veículo (Ex: Gol Prata)", width=450)
         self.ent_vei.pack(pady=10)
         
-        # 3. PLACA
+        
         self.ent_pla = ctk.CTkEntry(self.container, font=("Segoe UI", 18, "bold"), corner_radius=10, placeholder_text="Placa", width=450)
         self.ent_pla.pack(pady=10)
         
-        # 4. DESCRIÇÃO
+        
         self.ent_des = ctk.CTkEntry(self.container, font=("Segoe UI", 18, "bold"), corner_radius=10, placeholder_text="Descrição do Serviço", width=450)
         self.ent_des.pack(pady=10)
         
-        # 5. VALOR (Agora criado na ordem certa para o bind funcionar)
+        
         self.ent_valor = ctk.CTkEntry(self.container, font=("Segoe UI", 18, "bold"), corner_radius=10, placeholder_text="Valor (Ex: 500,00)", width=450)
         self.ent_valor.pack(pady=10)
-        self.ent_valor.insert(0, "0,00") # Já deixa o zero para o Robson
+        self.ent_valor.insert(0, "0,00") 
         
-        # VINCULANDO O ENTER (Apenas uma vez, após criar todos os campos)
+      
         self.ent_valor.bind("<Return>", lambda _: self.salvar_os())
         
-        # BOTÃO GRAVAR
+      
         ctk.CTkButton(self.container, text="Gravar O.S.", fg_color="green", font=("Roboto", 18, "bold"), width=200, height=45, command=self.salvar_os).pack(pady=30)
 
     def salvar_os(self):
@@ -228,7 +227,7 @@ class JanelaPrincipal(ctk.CTk):
             conn.execute("DELETE FROM servicos WHERE id = ?", (id_os,))
             conn.commit(); conn.close(); self.atualizar_tabela_dados()
 
-    # --- ESTOQUE COM BAIXA MÚLTIPLA ---
+    
     def tela_estoque(self):
         self.limpar_tela()
         ctk.CTkLabel(self.container, text="📦 Controle de Estoque", font=("Segoe UI", 18, "bold")).pack(pady=10)
@@ -267,7 +266,7 @@ class JanelaPrincipal(ctk.CTk):
                 
                 conn.commit()
                 conn.close()
-                # ESTA É A LINHA QUE LIMPA A TELA:
+                
                 for item in self.tabela_est.get_children():
                     self.tabela_est.delete(item)
                 messagebox.showinfo("Sucesso", "O estoque foi zerado!")
@@ -302,7 +301,7 @@ class JanelaPrincipal(ctk.CTk):
         for l in conn.execute("SELECT id, produto, quantidade FROM estoque"): self.tabela_est.insert("", "end", values=l)
         conn.close()
 
-    # --- FINANCEIRO ---
+    
     def tela_vendas(self):
         self.limpar_tela()
         conn = sqlite3.connect('usuarios.db')
@@ -312,7 +311,7 @@ class JanelaPrincipal(ctk.CTk):
         ctk.CTkLabel(self.container, text=f"Faturamento: R$ {total:.2f}", font=("Roboto", 30, "bold"), text_color="#2ecc71").pack(pady=50)
         ctk.CTkLabel(self.container, text=f"Serviços Entregues: {qtd}", font=("Roboto", 18)).pack()
 
-# --- 4. TELA DE LOGIN ---
+
 class JanelaLogin(ctk.CTk):
     def __init__(self):
         super().__init__()
@@ -320,29 +319,28 @@ class JanelaLogin(ctk.CTk):
         self.geometry("400x450")
         self.resizable(False, False)
 
-        # Título
+        
         ctk.CTkLabel(self, text="Acesso Restrito", font=("Roboto", 24, "bold")).pack(pady=40)
 
-        # Campo de Usuário
+       
         self.u = ctk.CTkEntry(self, placeholder_text="Usuário", width=250, height=35)
         self.u.pack(pady=10)
 
-        # Campo de Senha
+        
         self.s = ctk.CTkEntry(self, placeholder_text="Senha", width=250, height=35, show="*")
         self.s.pack(pady=10)
 
-        # --- AQUI O ENTER FUNCIONA ---
-        # Vincula a tecla Enter (Return) à função logar
+      
         self.u.bind("<Return>", lambda event: self.logar())
         self.s.bind("<Return>", lambda event: self.logar())
-        # -----------------------------
+        
 
-        # Botão Entrar
+     
         self.btn_entrar = ctk.CTkButton(self, text="Entrar", width=250, height=40, 
                                         font=("Roboto", 16, "bold"), command=self.logar)
         self.btn_entrar.pack(pady=20)
 
-        # Botão para cadastrar novo (opcional)
+       
         ctk.CTkButton(self, text="Cadastrar Novo Acesso", fg_color="transparent", 
                       text_color="gray", hover_color="#333", 
                       command=lambda: JanelaCadastro(self)).pack(pady=10)
@@ -356,20 +354,20 @@ class JanelaLogin(ctk.CTk):
             return
 
         conn = sqlite3.connect('usuarios.db')
-        # Busca o usuário no banco
+       
         user_data = conn.execute("SELECT * FROM usuarios WHERE user=? AND password=?", 
                                  (usuario, senha)).fetchone()
         conn.close()
 
         if user_data:
             print(f"✅ Bem-vindo, {usuario}!")
-            self.destroy()  # Fecha a tela de login
-            app = JanelaPrincipal()  # Abre o sistema principal da oficina
+            self.destroy()  
+            app = JanelaPrincipal()  
             app.mainloop()
         else:
             print("❌ Login Inválido! Verifique usuário e senha.")
 
-# --- 5. EXECUÇÃO ---
+
 if __name__ == "__main__":
     configurar_banco()
     app = JanelaLogin()
